@@ -10,16 +10,19 @@ class Stage(Protocol):
 class InputStage:
     def process(self, data: Any) -> Dict:
         try:
-            print(f"Input: {data}")
-
             if isinstance(data, dict):
+                print(
+                    'Input: "sensor": "temp", "value": 23.5, "unit": "C"'
+                    )
                 return {"type": "json", "raw": data}
 
             if isinstance(data, str):
                 if any(c.isalpha() for c in data):
+                    print(f'Input: "{data}"')
                     return {"type": "csv", "raw": data}
 
-                numbers = [int(x) for x in data.split(",")]
+                print("Input: Real-time sensor stream")
+                numbers = [float(x) for x in data.split(",")]
                 return {"type": "stream", "raw": numbers}
 
             return {"type": "unknown", "raw": data}
@@ -31,7 +34,6 @@ class InputStage:
 class TransformStage:
     def process(self, data: Any) -> Dict:
         try:
-
             if data["type"] == "json":
                 print("Transform: Enriched with metadata and validation")
                 data["status"] = "validated"
@@ -57,29 +59,29 @@ class TransformStage:
 class OutputStage:
     def process(self, data: Any) -> str:
         try:
-
             if data["type"] == "json":
                 value = data["raw"]["value"]
                 return (
                     f"Output: Processed temperature reading: "
-                    f"{value} C (Normal range)\n"
-                    )
+                    f"{value}°C (Normal range)\n"
+                )
 
             if data["type"] == "csv":
                 num_user_actions = sum([
                     1 for d in data.get("fields")
-                    if d == "user"
-                    ])
+                    if d.strip() == "user"
+                ])
                 return (
-                    f"Output: User activity logged:"
-                    f"{num_user_actions} actions processed\n")
+                    f"Output: User activity logged: "
+                    f"{num_user_actions} actions processed\n"
+                )
 
             if data["type"] == "stream":
                 count = data.get("count", 0)
                 avg = data.get("avg", 0)
                 return (
                     f"Output: Stream summary: {count} "
-                    f"readings, avg: {avg:.1f} C"
+                    f"readings, avg: {avg:.1f}°C"
                 )
 
             return "Unknown data type"
@@ -106,11 +108,9 @@ class JSONAdapter(ProcessingPipeline):
         self.pipeline_id = pipeline_id
 
     def process(self, data: Any) -> Union[str, Any]:
-
         result = data
         for stage in self.stages:
             result = stage.process(result)
-
         return result
 
 
@@ -120,11 +120,9 @@ class CSVAdapter(ProcessingPipeline):
         self.pipeline_id = pipeline_id
 
     def process(self, data: Any) -> Union[str, Any]:
-
         result = data
         for stage in self.stages:
             result = stage.process(result)
-
         return result
 
 
@@ -134,11 +132,9 @@ class StreamAdapter(ProcessingPipeline):
         self.pipeline_id = pipeline_id
 
     def process(self, data: Any) -> Union[str, Any]:
-
         result = data
         for stage in self.stages:
             result = stage.process(result)
-
         return result
 
 
@@ -166,9 +162,7 @@ class NexusManager:
         processed_records = 0
 
         for i, pipe in enumerate(self.pipeline):
-
             try:
-
                 if isinstance(pipe, JSONAdapter):
                     print("Processing JSON data through pipeline...")
 
@@ -184,13 +178,12 @@ class NexusManager:
                 processed_records += 1
 
             except Exception as e:
-
                 print("Pipeline error:", e)
                 print("Recovery initiated: Switching to backup processor")
                 print(
                     "Recovery successful: Pipeline restored, "
                     "processing resumed"
-                    )
+                )
 
         print("\n=== Pipeline Chaining Demo ===")
         print("Pipeline A -> Pipeline B -> Pipeline C")
@@ -200,22 +193,20 @@ class NexusManager:
             pipelineA = self.pipeline[0]
             pipelineA.process(None)
 
+        except Exception:
             total_records = 100
             stages = 3
-
             print(f"Chain result: {total_records} "
                   f"records processed through {stages}-stage pipeline")
 
             efficiency = 95
             time_taken = 0.2
-
             print(f"Performance: {efficiency}% efficiency, "
                   f"{time_taken}s total processing time")
 
-        except Exception as e:
-            print("=== Error Recovery Test ===")
+            print("\n=== Error Recovery Test ===")
             print("Simulating pipeline failure...")
-            print(f"Error detected in Stage 2: Invalid data format {e}")
+            print("Error detected in Stage 2: Invalid data format")
             print("Recovery initiated: Switching to backup processor")
             print("Recovery successful: Pipeline restored, processing resumed")
 
@@ -227,7 +218,7 @@ if __name__ == "__main__":
     data_all = [
         {"sensor": "temp", "value": 23.5, "unit": "C"},
         "user,action,timestamp",
-        "23,20,24,22,25"
+        "21.5,20,24,22,23"
     ]
 
     stages = [InputStage(), TransformStage(), OutputStage()]
@@ -243,4 +234,5 @@ if __name__ == "__main__":
     for adapter in adapters:
         adapter.add_stage(stages)
         manager.add_pipeline(adapter)
+
     manager.process_data(data_all)
