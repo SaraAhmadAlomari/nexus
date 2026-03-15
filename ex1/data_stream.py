@@ -46,7 +46,7 @@ class SensorStream(DataStream):
                     readings_map[name].append(val)
             for name, value in readings_map.items():
                 avg = sum(value) / len(value)
-                avg_lst.append(f"avg {name}: {avg:.1f}")
+                avg_lst.append(f"avg {name}: {avg:.1f}°C")
             if not avg_lst:
                 return "Sensor analysis: No valid readings processed"
             return (
@@ -99,7 +99,7 @@ class TransactionStream(DataStream):
             if count == 0:
                 return "Transaction analysis: No valid operations processed"
             return (
-                f"Transaction analysis: {count} operation,"
+                f"Transaction analysis: {count} operations, "
                 f"net flow: {sign}{total:.0f} units"
                 )
         except Exception as e:
@@ -137,7 +137,7 @@ class EventStream(DataStream):
             if count == 0:
                 return "Event analysis: No valid events processed"
             return (
-                f"Event analysis: {count} events,{error_count} error detected"
+                f"Event analysis: {count} events, {error_count} error detected"
                 )
         except Exception as e:
             return f"Event Error: {e}"
@@ -155,8 +155,15 @@ class StreamProcessor:
         print("Processing mixed stream types through unified interface...")
         print("\nBatch 1 Results:")
         for i in range(len(self.streams)):
-            res = self.streams[i].process_batch(batches[i])
-            print(f"- {res}")
+            stream = self.streams[i]
+            batch = batches[i]
+            count = sum(1 for d in batch if isinstance(d, str))
+            if isinstance(stream, SensorStream):
+                print(f"- Sensor data: {count} readings processed")
+            elif isinstance(stream, TransactionStream):
+                print(f"- Transaction data: {count} operations processed")
+            else:
+                print(f"- Event data: {count} events processed")
 
 
 if __name__ == "__main__":
@@ -178,7 +185,7 @@ if __name__ == "__main__":
         print(sensor.process_batch(s_ls))
 
         print("\nInitializing Transaction Stream...")
-        print(f"Stream ID: {transaction.stream_id},"
+        print(f"Stream ID: {transaction.stream_id}, "
               f"Type: {transaction.stream_type}")
         print(f"Processing transaction batch: {t_ls}")
         print(transaction.process_batch(t_ls))
@@ -199,8 +206,8 @@ if __name__ == "__main__":
         f_trans = transaction.filter_data(t_ls, "high_priority")
 
         print("\nStream filtering active: High-priority data only")
-        print(f"Filtered results: {len(f_sensor)}"
-              f"critical sensor alerts, {len(f_trans)} large transaction")
+        print(f"Filtered results: {len(f_sensor)} critical sensor alerts, "
+              f"{len(f_trans)} large transaction")
         print("All streams processed successfully. Nexus throughput optimal.")
 
     except Exception as e:
