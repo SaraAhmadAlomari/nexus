@@ -12,7 +12,7 @@ class InputStage:
         try:
             if isinstance(data, dict):
                 print(
-                    'Input: "sensor": "temp", "value": 23.5, "unit": "C"'
+                    'Input: {"sensor": "temp", "value": 23.5, "unit": "C"}'
                     )
                 return {"type": "json", "raw": data}
 
