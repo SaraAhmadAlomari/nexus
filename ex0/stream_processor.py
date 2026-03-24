@@ -11,7 +11,7 @@ class DataProcessor(ABC):
     def process(self, data: Any) -> str:
         pass
 
-    def format_output(self, result: Any) -> str:
+    def format_output(self, result: str) -> str:
         return result
 
 
@@ -54,7 +54,7 @@ class TextProcessor(DataProcessor):
             word_count = len(words)
             char_count = len(data)
             return (
-                f"Processed Text: {char_count} characters: {word_count} words"
+                f"Processed text: {char_count} characters, {word_count} words"
                 )
         except ValueError as e:
             return f"Validation Error: {e}"
@@ -72,11 +72,11 @@ class LogProcessor(DataProcessor):
                 raise ValueError("Log entry validation failed")
             if "ERROR" in data:
                 part = data.split(':', 1)
-                msg = part[1] if len(part) > 1 else data
+                msg = part[1].strip() if len(part) > 1 else data
                 return f"[ALERT] ERROR level detected: {msg}"
             elif "INFO" in data:
                 part = data.split(':', 1)
-                msg = part[1] if len(part) > 1 else data
+                msg = part[1].strip() if len(part) > 1 else data
                 return f"[INFO] INFO level detected: {msg}"
             return f"Log: {data}"
         except ValueError as ve:
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         print(f"Critical failure: {e}")
 
     try:
-        print("=== Polymorphic Processing Demo ===")
+        print("\n=== Polymorphic Processing Demo ===")
         print("Processing multiple data types through same interface...")
         processors: List[DataProcessor] = [
             NumericProcessor(), TextProcessor(), LogProcessor()

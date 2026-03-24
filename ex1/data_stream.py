@@ -70,10 +70,13 @@ class SensorStream(DataStream):
         if criteria == "high_priority":
             high_alerts = []
             for d in data_batch:
-                if isinstance(d, str) and ":" in d:
-                    val = float(d.split(':')[1])
-                    if val > 100:
-                        high_alerts.append(d)
+                try:
+                    if isinstance(d, str) and ":" in d:
+                        val = float(d.split(':')[1])
+                        if val > 100:
+                            high_alerts.append(d)
+                except Exception:
+                    continue
             return high_alerts
         return super().filter_data(data_batch, criteria)
 
@@ -113,10 +116,13 @@ class TransactionStream(DataStream):
         if criteria == "high_priority":
             high_val = []
             for d in data_batch:
-                if isinstance(d, str) and ":" in d:
-                    val = float(d.split(':')[1])
-                    if val > 100:
-                        high_val.append(d)
+                try:
+                    if isinstance(d, str) and ":" in d:
+                        val = float(d.split(':')[1])
+                        if val > 100:
+                            high_val.append(d)
+                except Exception:
+                    continue
             return high_val
         return super().filter_data(data_batch, criteria)
 
@@ -155,15 +161,8 @@ class StreamProcessor:
         print("Processing mixed stream types through unified interface...")
         print("\nBatch 1 Results:")
         for i in range(len(self.streams)):
-            stream = self.streams[i]
-            batch = batches[i]
-            count = sum(1 for d in batch if isinstance(d, str))
-            if isinstance(stream, SensorStream):
-                print(f"- Sensor data: {count} readings processed")
-            elif isinstance(stream, TransactionStream):
-                print(f"- Transaction data: {count} operations processed")
-            else:
-                print(f"- Event data: {count} events processed")
+            result = self.streams[i].process_batch(batches[i])
+            print(f"- {result}")
 
 
 if __name__ == "__main__":

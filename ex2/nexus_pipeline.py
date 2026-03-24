@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Dict, Union, Protocol
 
 
-class Stage(Protocol):
+class ProcessingStage(Protocol):
     def process(self, data: Any) -> Any:
         pass
 
@@ -92,9 +92,9 @@ class OutputStage:
 
 class ProcessingPipeline(ABC):
 
-    stages: List[Stage]
+    stages: List[ProcessingStage]
 
-    def add_stage(self, stages: List[Stage]) -> None:
+    def add_stage(self, stages: List[ProcessingStage]) -> None:
         self.stages = stages
 
     @abstractmethod
@@ -140,7 +140,8 @@ class StreamAdapter(ProcessingPipeline):
 
 class NexusManager:
 
-    pipeline: List[ProcessingPipeline] = []
+    def __init__(self):
+        self.pipeline: List[ProcessingPipeline] = []
 
     def add_pipeline(self, pipe: ProcessingPipeline) -> None:
         self.pipeline.append(pipe)
